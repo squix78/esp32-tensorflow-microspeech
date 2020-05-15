@@ -20,12 +20,14 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
+#include <Wire.h>  // Only needed for Arduino 1.6.5 and earlier
+#include "SSD1306Wire.h" // legacy include: `#include "SSD1306.h"`
 
 // Called every time the results of an audio recognition run are available. The
 // human-readable name of any recognized command is in the `found_command`
 // argument, `score` has the numerical confidence, and `is_new_command` is set
 // if the previous command was different to this one.
-void RespondToCommand(tflite::ErrorReporter* error_reporter,
+void RespondToCommand(tflite::ErrorReporter* error_reporter, OLEDDisplay *display,
                       int32_t current_time, const char* found_command,
                       uint8_t score, bool is_new_command);
 

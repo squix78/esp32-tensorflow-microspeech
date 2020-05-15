@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 #include <Arduino.h>
-#include "main_functions.h"
 
 #include "kiss_fft.h"
 #include "audio_provider.h"
@@ -29,6 +28,11 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/version.h"
 
+SSD1306Wire  display(0x3c, 21, 22);
+
+uint32_t inferenceCounter = 0;
+uint32_t inferenceStart = 0;
+String inferencePerSecond = "N/A";
 
 // Globals, used for compatibility with Arduino-style sketches.
 namespace {
@@ -52,6 +56,14 @@ uint8_t* model_input_buffer = nullptr;
 // The name of this function is important for Arduino compatibility.
 void setup() {
   //static SSD1306Wire  display(0x3c, 21, 22);
+  display.init();
+  display.clear();
+  display.setFont(ArialMT_Plain_24);
+  display.display();
+  log_d("Total heap: %d", ESP.getHeapSize());
+  log_d("Free heap: %d", ESP.getFreeHeap());
+  log_d("Total PSRAM: %d", ESP.getPsramSize());
+  log_d("Free PSRAM: %d", ESP.getFreePsram());
 
   // Set up logging. Google style is to avoid globals or statics because of
   // lifetime uncertainty, but since this has a trivial destructor it's okay.
@@ -175,9 +187,21 @@ void loop() {
                          "RecognizeCommands::ProcessLatestResults() failed");
     return;
   }
+
+  inferenceCounter++;
+  if (inferenceCounter > 10) {
+    inferencePerSecond = String((1000.0 * inferenceCounter) / (millis() - inferenceStart)) + "ips";
+    inferenceStart = millis();
+    inferenceCounter = 0;
+  }
+  display.clear();
+  display.setFont(ArialMT_Plain_10);
+  display.drawString(0, 10, inferencePerSecond);
+  display.drawString(0, 20, String(inferenceCounter));
   // Do something based on the recognized command. The default implementation
   // just prints to the error console, but you should replace this with your
   // own function for a real application.
-  RespondToCommand(error_reporter, current_time, found_command, score,
+  RespondToCommand(error_reporter, &display, current_time, found_command, score,
                    is_new_command);
+  display.display();
 }

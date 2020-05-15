@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-
+#include <Arduino.h>
 #include "ringbuf.h"
 
 #include <esp_heap_caps.h>
@@ -30,6 +30,7 @@ limitations under the License.
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 
+
 #define RB_TAG "RINGBUF"
 
 ringbuf_t *rb_init(const char *name, uint32_t size) {
@@ -44,8 +45,10 @@ ringbuf_t *rb_init(const char *name, uint32_t size) {
   assert(r);
 #if (CONFIG_SPIRAM_SUPPORT && \
      (CONFIG_SPIRAM_USE_CAPS_ALLOC || CONFIG_SPIRAM_USE_MALLOC))
-  //buf = heap_caps_calloc(16, size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-  buf = calloc(1, size);
+  //buf = heap_caps_calloc(1, size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  //buf = calloc(1, size);
+  buf = ps_malloc(size);
+  
 #else
   buf = calloc(1, size);
 #endif
